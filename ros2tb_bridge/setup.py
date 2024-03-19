@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'synchronized_subscriber = ros2tb_bridge.synchronized_subscriber:main',
             'threaded_synchronized_subscriber = ros2tb_bridge.threaded_synchronized_subscriber:main',
             'async_synchronized_subscriber = ros2tb_bridge.async_synchronized_subscriber:main'
         ],
