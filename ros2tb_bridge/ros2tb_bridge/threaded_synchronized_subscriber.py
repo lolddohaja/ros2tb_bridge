@@ -8,22 +8,21 @@ from geometry_msgs.msg import Twist
 import paho.mqtt.client as mqtt
 import json
 import threading
-import subprocess
 
 class AsyncSynchronizedSubscriber(Node):
     def __init__(self):
-        super().__init__('thread_synchronized_subscriber')
+        super().__init__('async_synchronized_subscriber')
         # MQTT 클라이언트 설정 및 비동기 루프 시작
-        # self.mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-        # self.mqtt_broker = 'mqtt.thingsboard.cloud'
-        # self.mqtt_port = '1883'
-        # self.mqtt_topic = 'v1/devices/me/telemetry'
+        self.mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self.mqtt_broker = 'mqtt.thingsboard.cloud'
+        self.mqtt_port = 1883
+        self.mqtt_topic = 'v1/devices/me/telemetry'
         
-        #self.mqtt_client.username_pw_set(username="a81afcd0-e03a-11ee-aedd-33f1c759bdb2", password='nl5qoluv3Pz2FhT1Hipk')
+        self.mqtt_client.username_pw_set(username="a81afcd0-e03a-11ee-aedd-33f1c759bdb2", password='nl5qoluv3Pz2FhT1Hipk')
         print(1)
-        # self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
+        self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
         print(2)
-        # self.mqtt_client.loop_start()
+        self.mqtt_client.loop_start()
         print(3)
 
         # ROS2 토픽 구독 설정
@@ -51,16 +50,7 @@ class AsyncSynchronizedSubscriber(Node):
 
     def publish_message(self, message):
         # 이 메소드는 별도의 스레드에서 실행됩니다.
-        command = [
-            'mosquitto_pub',
-            '-h', self.mqtt_broker,  # MQTT 서버 호스트
-            '-p', str(self.mqtt_port),  # 포트
-            '-t', self.mqtt_topic,  # 토픽
-            '-u', "a81afcd0-e03a-11ee-aedd-33f1c759bdb2",  # 사용자 이름
-            '-P', 'nl5qoluv3Pz2FhT1Hipk',  # 비밀번호
-            '-m', message  # 메시지
-        ]
-        subprocess.run(command)
+        self.mqtt_client.publish(self.mqtt_topic, message)
 
 def main(args=None):
     rclpy.init(args=args)
@@ -72,7 +62,7 @@ def main(args=None):
     # Clean up
     node.destroy_node()
     print(11)
-    # node.mqtt_client.loop_stop()  # 비동기 처리 정지 및 정리
+    node.mqtt_client.loop_stop()  # 비동기 처리 정지 및 정리
     print(11)
     rclpy.shutdown()
 

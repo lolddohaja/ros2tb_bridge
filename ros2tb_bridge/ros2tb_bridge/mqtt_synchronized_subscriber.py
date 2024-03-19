@@ -7,10 +7,13 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Int32MultiArray
 
 import json
+import threading
+import paho.mqtt.client as mqtt
 
 class CustomSyncSubscriber(Node):
     def __init__(self):
-        super().__init__('custom_sync_subscriber')
+        super().__init__('thingsboard_bridge')
+
         self.latest_twist_msg = None
         self.latest_gps_msg = None
         self.latest_battery_msg = None
@@ -22,6 +25,14 @@ class CustomSyncSubscriber(Node):
 
         # 타이머를 설정하여 주기적으로 최신 메시지를 처리
         self.timer = self.create_timer(1.0, self.timer_callback)  # 1초마다 실행
+
+        self.mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self.mqtt_broker = 'mqtt.thingsboard.cloud'
+        self.mqtt_port = 1883
+        self.mqtt_topic = 'v1/devices/me/telemetry'
+        self.mqtt_client.username_pw_set(username="HDR001", password='zetabank')
+        self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
+        self.mqtt_client.loop_start()
 
     def twist_callback(self, msg):
         # Twist 메시지를 받을 때마다 최신 상태를 업데이트
@@ -46,6 +57,7 @@ class CustomSyncSubscriber(Node):
                 "battery_level": self.latest_battery_msg.data[0]  # 예를 들어 첫 번째 배터리 레벨만 로깅
             }
             log_message = json.dumps(log_data)
+            self.mqtt_client.publish(self.mqtt_topic, log_message)
             self.get_logger().info(log_message)
         else:
             self.get_logger().info("Waiting for Twist, GPS, and Battery messages...")
@@ -60,6 +72,7 @@ def main(args=None):
     finally:
         # Clean up
         node.destroy_node()
+        node.mqtt_client.loop_stop()  # 비동기 처리 정지 및 정리
         rclpy.shutdown()
 
 if __name__ == '__main__':
