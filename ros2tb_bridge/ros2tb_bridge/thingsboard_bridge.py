@@ -30,7 +30,7 @@ class CustomSyncSubscriber(Node):
         self.mqtt_broker = 'mqtt.thingsboard.cloud'
         self.mqtt_port = 1883
         self.mqtt_topic = 'v1/devices/me/telemetry'
-        self.mqtt_client.username_pw_set(username="HDR001", password='zetabank')
+        self.mqtt_client.username_pw_set(username="65lrb3jq02amvtd5zh4w", password='65lrb3jq02amvtd5zh4w')
         self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
         self.mqtt_client.loop_start()
 

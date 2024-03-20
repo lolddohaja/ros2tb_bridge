@@ -21,9 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'synchronized_subscriber = ros2tb_bridge.synchronized_subscriber:main',
-            'threaded_synchronized_subscriber = ros2tb_bridge.threaded_synchronized_subscriber:main',
-            'async_synchronized_subscriber = ros2tb_bridge.async_synchronized_subscriber:main',
-            'thingsboard_bridge = ros2tb_bridge.mqtt_synchronized_subscriber:main',
+            'thingsboard_bridge = ros2tb_bridge.thingsboard_bridge:main',
         ],
     },
 )
