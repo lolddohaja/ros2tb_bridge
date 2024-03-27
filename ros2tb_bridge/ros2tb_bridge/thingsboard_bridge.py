@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import Int32MultiArray, Float64
 
 import json
 import threading
@@ -17,11 +17,13 @@ class CustomSyncSubscriber(Node):
         self.latest_twist_msg = None
         self.latest_gps_msg = None
         self.latest_battery_msg = None
+        self.latest_heading = None
 
         # 각 토픽에 대한 구독자 설정
         self.twist_subscriber = self.create_subscription(Twist, '/twist_mux/cmd_vel', self.twist_callback, 10)
         self.gps_subscriber = self.create_subscription(NavSatFix, '/ublox_gps_node/fix', self.gps_callback, 10)
         self.battery_subscriber = self.create_subscription(Int32MultiArray, '/a012_power', self.battery_callback, 10)
+        self.heading_subscriber = self.create_subscription(Float64, '/heading', self.heading_callback, 10)
 
         # 타이머를 설정하여 주기적으로 최신 메시지를 처리
         self.timer = self.create_timer(1.0, self.timer_callback)  # 1초마다 실행
@@ -46,15 +48,19 @@ class CustomSyncSubscriber(Node):
         # BatteryStateArray 메시지를 받을 때마다 최신 상태를 업데이트
         self.latest_battery_msg = msg
 
+    def heading_callback(self, msg):
+        self.latest_heading_msg = msg
+
     def timer_callback(self):
         # 모든 최신 메시지가 유효할 때 JSON 로깅
-        if self.latest_twist_msg or self.latest_gps_msg or self.latest_battery_msg:
+        if self.latest_twist_msg or self.latest_gps_msg or self.latest_battery_msg or self.latest_heading_msg:
             # JSON 문자열로 로깅할 데이터 구성
             log_data = {
                 "speed": self.latest_twist_msg.linear.x,
                 "latitude": self.latest_gps_msg.latitude,
                 "longitude": self.latest_gps_msg.longitude,
-                "battery_level": self.latest_battery_msg.data[0]  # 예를 들어 첫 번째 배터리 레벨만 로깅
+                "battery": self.latest_battery_msg.data[0],  # 예를 들어 첫 번째 배터리 레벨만 로깅
+                "heading": self.latest_heading_msg.data
             }
             log_message = json.dumps(log_data)
             self.mqtt_client.publish(self.mqtt_topic, log_message)
