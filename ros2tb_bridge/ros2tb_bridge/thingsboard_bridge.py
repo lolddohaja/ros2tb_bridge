@@ -48,7 +48,7 @@ class CustomSyncSubscriber(Node):
 
     def timer_callback(self):
         # 모든 최신 메시지가 유효할 때 JSON 로깅
-        if self.latest_twist_msg and self.latest_gps_msg and self.latest_battery_msg:
+        if self.latest_twist_msg or self.latest_gps_msg or self.latest_battery_msg:
             # JSON 문자열로 로깅할 데이터 구성
             log_data = {
                 "speed": self.latest_twist_msg.linear.x,
